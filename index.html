@@ -67,13 +67,12 @@
       width: 100%;
       height: auto;
       border-radius: 20px;
-      opacity: 0.6;
-      /* Başlangıç opacity: 0.6 */
+      opacity: 0.5;
+      /* Başlangıç opacity: 0.5 */
       display: block;
       transition: transform 0.45s cubic-bezier(.2, .9, .3, 1), opacity 0.35s;
       will-change: transform, opacity;
       visibility: hidden;
-      /* Başlangıçta görünmez */
     }
 
     .artwork.playing img {
@@ -311,6 +310,18 @@
     let isPlaying = false;
     let trackInfoInterval;
 
+    function setMediaSession(artist, title, cover) {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: title,
+          artist: artist,
+          artwork: [
+            { src: cover, sizes: '512x512', type: 'image/jpeg' }
+          ]
+        });
+      }
+    }
+
     async function updateTrackInfo(initial = false) {
       try {
         const res = await fetch(`https://api.radioking.io/widget/radio/radio-else1/track/current?format=json&_=${Date.now()}`);
@@ -323,16 +334,16 @@
         artistNameEl.textContent = artist;
         songNameEl.textContent = title;
 
-        artworkImg.style.visibility = "hidden"; // artwork yüklenmeden gizle
+        artworkImg.style.visibility = "hidden";
         artworkImg.src = cover;
-        artworkImg.onload = () => {
-          artworkImg.style.visibility = "visible";
-        }
-        if (initial) artworkImg.style.opacity = 0.4; // İlk yükleme opacity: 0.4
+        artworkImg.onload = () => { artworkImg.style.visibility = "visible"; }
+
+        setMediaSession(artist, title, cover);
+
+        if (initial) artworkImg.style.opacity = 0.5; // İlk yükleme pause durumu
       } catch (e) { console.error(e); }
     }
 
-    // Sayfa yüklenince current track bilgilerini getir
     updateTrackInfo(true);
 
     playPauseBtn.addEventListener('click', () => {
@@ -344,14 +355,14 @@
       if (isPlaying) {
         audio.play();
         artworkEl.classList.add('playing');
-        artworkImg.style.opacity = 0.8; // Play sonrası opacity: 0.8
+        artworkImg.style.opacity = 0.8; // Play sonrası opacity
         playPauseIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="white"></path>';
         updateTrackInfo();
         trackInfoInterval = setInterval(updateTrackInfo, 5000);
       } else {
         audio.pause();
         artworkEl.classList.remove('playing');
-        artworkImg.style.opacity = 0.6; // Pause sonrası tekrar opacity: 0.6
+        artworkImg.style.opacity = 0.5; // Pause sonrası opacity
         playPauseIcon.innerHTML = '<path d="M4 2.5v19l16-9.5L4 2.5z" fill="white"></path>';
         clearInterval(trackInfoInterval);
       }
