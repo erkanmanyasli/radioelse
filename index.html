@@ -68,6 +68,7 @@
       height: auto;
       border-radius: 20px;
       opacity: 0.6;
+      /* Başlangıç opacity: 0.6 */
       display: block;
       transition: transform 0.45s cubic-bezier(.2, .9, .3, 1), opacity 0.35s;
       will-change: transform, opacity;
@@ -77,7 +78,8 @@
 
     .artwork.playing img {
       transform: scale(1.02);
-      opacity: 1;
+      opacity: 0.8;
+      /* Play sonrası opacity: 0.8 */
       visibility: visible;
     }
 
@@ -321,12 +323,12 @@
         artistNameEl.textContent = artist;
         songNameEl.textContent = title;
 
-        artworkImg.style.visibility = "hidden";
+        artworkImg.style.visibility = "hidden"; // artwork yüklenmeden gizle
         artworkImg.src = cover;
         artworkImg.onload = () => {
           artworkImg.style.visibility = "visible";
         }
-        if (initial) artworkImg.style.opacity = 0.6;
+        if (initial) artworkImg.style.opacity = 0.4; // İlk yükleme opacity: 0.4
       } catch (e) { console.error(e); }
     }
 
@@ -342,12 +344,14 @@
       if (isPlaying) {
         audio.play();
         artworkEl.classList.add('playing');
+        artworkImg.style.opacity = 0.8; // Play sonrası opacity: 0.8
         playPauseIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="white"></path>';
         updateTrackInfo();
         trackInfoInterval = setInterval(updateTrackInfo, 5000);
       } else {
         audio.pause();
         artworkEl.classList.remove('playing');
+        artworkImg.style.opacity = 0.6; // Pause sonrası tekrar opacity: 0.6
         playPauseIcon.innerHTML = '<path d="M4 2.5v19l16-9.5L4 2.5z" fill="white"></path>';
         clearInterval(trackInfoInterval);
       }
