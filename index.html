@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap"
     rel="stylesheet" />
+
   <style>
     html,
     body {
@@ -66,15 +67,18 @@
       width: 100%;
       height: auto;
       border-radius: 20px;
-      opacity: 0.5;
+      opacity: 0.6;
       display: block;
       transition: transform 0.45s cubic-bezier(.2, .9, .3, 1), opacity 0.35s;
       will-change: transform, opacity;
+      visibility: hidden;
+      /* Başlangıçta görünmez */
     }
 
     .artwork.playing img {
       transform: scale(1.02);
-      opacity: 0.8;
+      opacity: 1;
+      visibility: visible;
     }
 
     .play-pause-btn {
@@ -230,8 +234,8 @@
     </div>
 
     <div class="texts">
-      <div class="artistname">Agustin Pietrocola</div>
-      <div class="songname">Sorcerer</div>
+      <div class="artistname">Loading...</div>
+      <div class="songname">Loading...</div>
     </div>
 
     <div class="switch-wrapper">
@@ -265,7 +269,11 @@
     const simplex = new SimplexNoise();
     let w, h, ticker;
 
-    function resizeCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; ctx.lineWidth = 2; }
+    function resizeCanvas() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      ctx.lineWidth = 2;
+    }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
@@ -274,15 +282,15 @@
       ticker = now / 9000;
       ctx.fillStyle = isDark ? 'black' : 'white';
       ctx.fillRect(0, 0, w, h);
-      const zoom = 110, strengthX = 140, strengthY = 140;
+      const zoom = 110, strX = 140, strY = 140;
       for (let y = h / 2 - 40; y < h / 2 + 40; y += 0.5) {
         const hue = y * 0.6 + ticker * 50;
         const color = isDark ? `hsla(${hue},100%,50%,0.01)` : `hsla(0,0%,${50 + (y % 50) / 2}%,0.01)`;
         ctx.beginPath();
         ctx.strokeStyle = color;
-        for (let x = -strengthX; x < w + strengthX; x += 4) {
-          const n1 = simplex.noise3D(x / zoom, y / zoom, ticker) * strengthX;
-          const n2 = simplex.noise3D(x / zoom + 1000, y / zoom + 1000, ticker + 1000) * strengthY;
+        for (let x = -strX; x < w + strX; x += 4) {
+          const n1 = simplex.noise3D(x / zoom, y / zoom, ticker) * strX;
+          const n2 = simplex.noise3D(x / zoom + 1000, y / zoom + 1000, ticker + 1000) * strY;
           ctx.lineTo(x + n1, y + n2);
         }
         ctx.stroke();
@@ -301,21 +309,29 @@
     let isPlaying = false;
     let trackInfoInterval;
 
-    async function updateTrackInfo() {
+    async function updateTrackInfo(initial = false) {
       try {
         const res = await fetch(`https://api.radioking.io/widget/radio/radio-else1/track/current?format=json&_=${Date.now()}`);
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
-
-        const artist = data.artist || "";
-        const title = data.title || "";
-        const cover = data.cover || "./images/Artwork.jpg"; // fallback
+        const artist = data.artist || "Unknown";
+        const title = data.title || "Unknown";
+        const cover = data.cover || "./images/Artwork.jpg";
 
         artistNameEl.textContent = artist;
         songNameEl.textContent = title;
+
+        artworkImg.style.visibility = "hidden";
         artworkImg.src = cover;
+        artworkImg.onload = () => {
+          artworkImg.style.visibility = "visible";
+        }
+        if (initial) artworkImg.style.opacity = 0.6;
       } catch (e) { console.error(e); }
     }
+
+    // Sayfa yüklenince current track bilgilerini getir
+    updateTrackInfo(true);
 
     playPauseBtn.addEventListener('click', () => {
       isPlaying = !isPlaying;
@@ -328,7 +344,7 @@
         artworkEl.classList.add('playing');
         playPauseIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="white"></path>';
         updateTrackInfo();
-        trackInfoInterval = setInterval(updateTrackInfo, 5000); // her 5 saniyede güncelle
+        trackInfoInterval = setInterval(updateTrackInfo, 5000);
       } else {
         audio.pause();
         artworkEl.classList.remove('playing');
