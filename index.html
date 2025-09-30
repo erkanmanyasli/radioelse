@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Radio Else</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet" />
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: "Jost", sans-serif;
+    }
+
+    #canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      background-color: transparent;
+      min-height: 100vh;
+      align-items: center;
+      transition: background-color 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .ustlogo {
+      display: flex;
+      justify-content: center;
+      padding: 70px 0;
+    }
+
+    .ustlogo img {
+      max-width: 10%;
+      min-width: 100px;
+      height: auto;
+      transition: all 0.3s;
+    }
+
+    .artwork {
+      position: relative;
+      width: 60%;
+      max-width: 400px;
+      margin-bottom: 10px;
+      height: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .artwork img {
+      width: 100%;
+      height: auto;
+      border-radius: 20px;
+      opacity: 0.6;
+      display: block;
+      transition: transform 0.45s cubic-bezier(.2, .9, .3, 1), opacity 0.35s;
+      will-change: transform, opacity;
+    }
+
+    .artwork.playing img {
+      transform: scale(1.02);
+      opacity: 1;
+    }
+
+    .play-pause-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 25%;
+      aspect-ratio: 1/1;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.18s ease;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+    }
+
+    .play-pause-btn:active {
+      transform: translate(-50%, -50%) scale(0.96);
+    }
+
+    .play-pause-btn svg {
+      width: 50%;
+      height: 50%;
+      fill: white;
+    }
+
+    .texts {
+      text-align: center;
+      margin: 10px 0;
+      font-size: 20px;
+      color: #000;
+      transition: color 0.3s;
+    }
+
+    .artistname {
+      font-weight: bold;
+    }
+
+    .songname {
+      font-weight: lighter;
+      font-style: italic;
+    }
+
+    .banner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 60px;
+      background-color: black;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      z-index: 1;
+    }
+
+    .banner img {
+      opacity: 0.2;
+    }
+
+    .switch-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 0;
+    }
+
+    .switch {
+      width: 60px;
+      height: 30px;
+      position: relative;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .switch label {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: rgb(219, 219, 219);
+      border-radius: 30px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .switch label:after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #fff;
+      background-image: url('images/moontoggle.svg');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .switch input:checked+label:after {
+      left: calc(100% - 3px - 24px);
+      background-color: #000;
+      background-image: url('images/suntoggle-white.png');
+    }
+
+    .dark .texts {
+      color: #fff;
+    }
+
+    @media (max-width:400px) {
+      .texts {
+        font-size: 15px;
+        margin: 10px 0;
+      }
+
+      .ustlogo {
+        padding: 50px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <audio id="audioPlayer" src="https://play.radioking.io/radio-else1" preload="none"></audio>
+
+  <div class="container" id="container">
+    <div class="ustlogo">
+      <img src="./images/Else Logo_Sadece ELSE_Black_PNG_Slogansiz.png" alt="radioelselogo" id="logo" />
+    </div>
+
+    <div class="artwork" id="artwork">
+      <img src="./images/Artwork.jpg" alt="Artwork" id="artworkImg" />
+      <div class="play-pause-btn" id="playPauseBtn" aria-label="Play" aria-pressed="false" title="Play">
+        <svg id="playPauseIcon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 2.5v19l16-9.5L4 2.5z" fill="white"></path>
+        </svg>
+      </div>
+    </div>
+
+    <div class="texts">
+      <div class="artistname">Agustin Pietrocola</div>
+      <div class="songname">Sorcerer</div>
+    </div>
+
+    <div class="switch-wrapper">
+      <div class="switch">
+        <input type="checkbox" id="switch" />
+        <label for="switch"></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="banner">
+    <img src="./images/Else Logo_Sadece ELSE_White_PNG.png" height="20" alt="elselogowhite" />
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/simplex-noise@2.4.0/simplex-noise.min.js"></script>
+  <script>
+    const toggle = document.getElementById('switch');
+    const container = document.getElementById('container');
+    const logo = document.getElementById('logo');
+    let isDark = false;
+
+    toggle.addEventListener('change', () => {
+      isDark = toggle.checked;
+      container.classList.toggle('dark', isDark);
+      logo.src = isDark ? 'images/Else Logo_Sadece ELSE_White_PNG_Slogansiz.png' : 'images/Else Logo_Sadece ELSE_Black_PNG_Slogansiz.png';
+    });
+
+    // Canvas
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const simplex = new SimplexNoise();
+    let w, h, ticker;
+
+    function resizeCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; ctx.lineWidth = 2; }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function draw(now) {
+      requestAnimationFrame(draw);
+      ticker = now / 9000;
+      ctx.fillStyle = isDark ? 'black' : 'white';
+      ctx.fillRect(0, 0, w, h);
+      const zoom = 110, strengthX = 140, strengthY = 140;
+      for (let y = h / 2 - 40; y < h / 2 + 40; y += 0.5) {
+        const hue = y * 0.6 + ticker * 50;
+        const color = isDark ? `hsla(${hue},100%,50%,0.01)` : `hsla(0,0%,${50 + (y % 50) / 2}%,0.01)`;
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        for (let x = -strengthX; x < w + strengthX; x += 4) {
+          const n1 = simplex.noise3D(x / zoom, y / zoom, ticker) * strengthX;
+          const n2 = simplex.noise3D(x / zoom + 1000, y / zoom + 1000, ticker + 1000) * strengthY;
+          ctx.lineTo(x + n1, y + n2);
+        }
+        ctx.stroke();
+      }
+    }
+    draw(1);
+
+    // Player
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const artworkEl = document.getElementById('artwork');
+    const artworkImg = document.getElementById('artworkImg');
+    const artistNameEl = document.querySelector('.artistname');
+    const songNameEl = document.querySelector('.songname');
+    const audio = document.getElementById('audioPlayer');
+    let isPlaying = false;
+    let trackInfoInterval;
+
+    async function updateTrackInfo() {
+      try {
+        const res = await fetch(`https://api.radioking.io/widget/radio/radio-else1/track/current?format=json&_=${Date.now()}`);
+        if (!res.ok) throw new Error(res.status);
+        const data = await res.json();
+
+        const artist = data.artist || "";
+        const title = data.title || "";
+        const cover = data.cover || "./images/Artwork.jpg"; // fallback
+
+        artistNameEl.textContent = artist;
+        songNameEl.textContent = title;
+        artworkImg.src = cover;
+      } catch (e) { console.error(e); }
+    }
+
+    playPauseBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      playPauseBtn.setAttribute('aria-pressed', isPlaying);
+      playPauseBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+      playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
+
+      if (isPlaying) {
+        audio.play();
+        artworkEl.classList.add('playing');
+        playPauseIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="white"></path>';
+        updateTrackInfo();
+        trackInfoInterval = setInterval(updateTrackInfo, 5000); // her 5 saniyede güncelle
+      } else {
+        audio.pause();
+        artworkEl.classList.remove('playing');
+        playPauseIcon.innerHTML = '<path d="M4 2.5v19l16-9.5L4 2.5z" fill="white"></path>';
+        clearInterval(trackInfoInterval);
+      }
+    });
+  </script>
+</body>
+
+</html>
