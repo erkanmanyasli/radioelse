@@ -67,15 +67,14 @@
       height: auto;
       border-radius: 20px;
       opacity: 0.5;
-      transition: transform .45s cubic-bezier(.2, .9, .3, 1), opacity .35s, filter .35s;
+      transition: transform .45s cubic-bezier(.2, .9, .3, 1), opacity .35s, filter .35s, visibility .35s;
       will-change: transform, opacity;
-      visibility: hidden;
+      visibility: visible;
     }
 
     .artwork.playing img {
       transform: scale(1.02);
       opacity: 0.8;
-      visibility: visible;
     }
 
     .play-pause-btn {
@@ -276,11 +275,7 @@
       for (let y = h / 2 - 40; y < h / 2 + 40; y += 0.5) {
         let strokeColor;
         if (isDark) {
-          if (useInvertedGray) {
-            strokeColor = `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.06)`;
-          } else {
-            strokeColor = `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.05)`;
-          }
+          strokeColor = useInvertedGray ? `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.06)` : `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.05)`;
         } else {
           strokeColor = `hsla(0,0%,${50 + (y % 50) / 2}%,0.01)`;
         }
@@ -297,6 +292,8 @@
     draw(1);
 
     const artworkImg = document.getElementById('artworkImg');
+    artworkImg.crossOrigin = "anonymous";
+
     function analyzeImagePixels(imgEl, sampleSize = 100) {
       try {
         const iw = imgEl.naturalWidth, ih = imgEl.naturalHeight;
@@ -324,6 +321,7 @@
         return { r: 200, g: 200, b: 200, blackPct: 0 };
       }
     }
+
     function updateGradientFromArtwork() {
       const result = analyzeImagePixels(artworkImg, 80);
       if (result.blackPct >= 90) {
@@ -342,6 +340,7 @@
     const songNameEl = document.querySelector('.songname');
     const audio = document.getElementById('audioPlayer');
     let isPlaying = false; let trackInfoInterval;
+    let lastTrack = { artist: '', title: '', cover: '' };
 
     function setMediaSession(artist, title, cover) {
       if ('mediaSession' in navigator) {
@@ -362,25 +361,25 @@
         const artist = data.artist || "Unknown";
         const title = data.title || "Unknown";
         const cover = data.cover || "./images/Artwork.jpg";
+
         artistNameEl.textContent = artist;
         songNameEl.textContent = title;
 
         // sadece değişmişse cover güncelle
-        if (artworkImg.src !== cover) {
-          artworkImg.style.visibility = "hidden";
-          try { artworkImg.crossOrigin = "anonymous"; } catch (e) { }
+        if (cover !== lastTrack.cover) {
           artworkImg.src = cover;
           artworkImg.onload = () => {
-            artworkImg.style.visibility = "visible";
             updateGradientFromArtwork();
             if (isPlaying) artworkEl.classList.add('playing');
           };
         }
 
+        lastTrack = { artist, title, cover };
         setMediaSession(artist, title, cover);
         if (initial) artworkImg.style.opacity = 0.5;
       } catch (e) { console.error('updateTrackInfo error', e); }
     }
+
     updateTrackInfo(true);
 
     playPauseBtn.addEventListener('click', () => {
