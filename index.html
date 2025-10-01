@@ -70,7 +70,6 @@
       transition: transform .45s cubic-bezier(.2, .9, .3, 1), opacity .35s, filter .35s;
       will-change: transform, opacity;
       visibility: hidden;
-      /* yüklenene kadar gizli */
     }
 
     .artwork.playing img {
@@ -365,14 +364,19 @@
         const cover = data.cover || "./images/Artwork.jpg";
         artistNameEl.textContent = artist;
         songNameEl.textContent = title;
-        artworkImg.style.visibility = "hidden";
-        try { artworkImg.crossOrigin = "anonymous"; } catch (e) { }
-        artworkImg.src = cover;
-        artworkImg.onload = () => {
-          artworkImg.style.visibility = "visible";
-          updateGradientFromArtwork();
-          if (isPlaying) artworkEl.classList.add('playing');
-        };
+
+        // sadece değişmişse cover güncelle
+        if (artworkImg.src !== cover) {
+          artworkImg.style.visibility = "hidden";
+          try { artworkImg.crossOrigin = "anonymous"; } catch (e) { }
+          artworkImg.src = cover;
+          artworkImg.onload = () => {
+            artworkImg.style.visibility = "visible";
+            updateGradientFromArtwork();
+            if (isPlaying) artworkEl.classList.add('playing');
+          };
+        }
+
         setMediaSession(artist, title, cover);
         if (initial) artworkImg.style.opacity = 0.5;
       } catch (e) { console.error('updateTrackInfo error', e); }
