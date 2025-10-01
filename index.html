@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Radio Else</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap"
-    rel="stylesheet" />
+    rel="stylesheet">
 
   <style>
     html,
@@ -31,10 +32,9 @@
     .container {
       display: flex;
       flex-direction: column;
-      background-color: transparent;
+      background: transparent;
       min-height: 100vh;
       align-items: center;
-      transition: background-color 0.3s;
       position: relative;
       z-index: 1;
     }
@@ -49,7 +49,7 @@
       max-width: 10%;
       min-width: 100px;
       height: auto;
-      transition: all 0.3s;
+      transition: all .3s;
     }
 
     .artwork {
@@ -57,7 +57,6 @@
       width: 60%;
       max-width: 400px;
       margin-bottom: 10px;
-      height: auto;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -68,17 +67,15 @@
       height: auto;
       border-radius: 20px;
       opacity: 0.5;
-      /* Başlangıç opacity: 0.5 */
-      display: block;
-      transition: transform 0.45s cubic-bezier(.2, .9, .3, 1), opacity 0.35s;
+      transition: transform .45s cubic-bezier(.2, .9, .3, 1), opacity .35s, filter .35s;
       will-change: transform, opacity;
       visibility: hidden;
+      /* yüklenene kadar gizli */
     }
 
     .artwork.playing img {
       transform: scale(1.02);
       opacity: 0.8;
-      /* Play sonrası opacity: 0.8 */
       visibility: visible;
     }
 
@@ -89,18 +86,18 @@
       transform: translate(-50%, -50%);
       width: 25%;
       aspect-ratio: 1/1;
-      background: rgba(0, 0, 0, 0.45);
+      background: rgba(0, 0, 0, .45);
       border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      transition: background 0.3s ease, transform 0.18s ease;
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+      transition: background .3s ease, transform .18s ease;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .35);
     }
 
     .play-pause-btn:active {
-      transform: translate(-50%, -50%) scale(0.96);
+      transform: translate(-50%, -50%) scale(.96);
     }
 
     .play-pause-btn svg {
@@ -114,7 +111,7 @@
       margin: 10px 0;
       font-size: 20px;
       color: #000;
-      transition: color 0.3s;
+      transition: color .3s;
     }
 
     .artistname {
@@ -139,7 +136,7 @@
     }
 
     .banner img {
-      opacity: 0.2;
+      opacity: .2;
     }
 
     .switch-wrapper {
@@ -174,7 +171,7 @@
       border-radius: 30px;
       position: relative;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: background .3s;
     }
 
     .switch label:after {
@@ -190,7 +187,7 @@
       background-position: center;
       background-repeat: no-repeat;
       background-size: 14px;
-      transition: all 0.3s;
+      transition: all .3s;
     }
 
     .switch input:checked+label:after {
@@ -222,14 +219,14 @@
 
   <div class="container" id="container">
     <div class="ustlogo">
-      <img src="./images/Else Logo_Sadece ELSE_Black_PNG_Slogansiz.png" alt="radioelselogo" id="logo" />
+      <img src="./images/Else Logo_Sadece ELSE_Black_PNG_Slogansiz.png" alt="logo" id="logo">
     </div>
 
     <div class="artwork" id="artwork">
-      <img src="./images/Artwork.jpg" alt="Artwork" id="artworkImg" />
+      <img id="artworkImg" src="./images/Artwork.jpg" alt="Artwork" crossorigin="anonymous">
       <div class="play-pause-btn" id="playPauseBtn" aria-label="Play" aria-pressed="false" title="Play">
-        <svg id="playPauseIcon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 2.5v19l16-9.5L4 2.5z" fill="white"></path>
+        <svg id="playPauseIcon" viewBox="0 0 24 24">
+          <path d="M4 2.5v19l16-9.5L4 2.5z" fill="white" />
         </svg>
       </div>
     </div>
@@ -241,15 +238,13 @@
 
     <div class="switch-wrapper">
       <div class="switch">
-        <input type="checkbox" id="switch" />
+        <input type="checkbox" id="switch">
         <label for="switch"></label>
       </div>
     </div>
   </div>
 
-  <div class="banner">
-    <img src="./images/Else Logo_Sadece ELSE_White_PNG.png" height="20" alt="elselogowhite" />
-  </div>
+  <div class="banner"><img src="./images/Else Logo_Sadece ELSE_White_PNG.png" height="20" alt="logo-white"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/simplex-noise@2.4.0/simplex-noise.min.js"></script>
   <script>
@@ -257,26 +252,21 @@
     const container = document.getElementById('container');
     const logo = document.getElementById('logo');
     let isDark = false;
-
     toggle.addEventListener('change', () => {
       isDark = toggle.checked;
       container.classList.toggle('dark', isDark);
       logo.src = isDark ? 'images/Else Logo_Sadece ELSE_White_PNG_Slogansiz.png' : 'images/Else Logo_Sadece ELSE_Black_PNG_Slogansiz.png';
     });
 
-    // Canvas
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const simplex = new SimplexNoise();
     let w, h, ticker;
+    let avgColor = { r: 255, g: 255, b: 255 };
+    let useInvertedGray = false;
 
-    function resizeCanvas() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-      ctx.lineWidth = 2;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    function resizeCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; ctx.lineWidth = 2; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
     function draw(now) {
       requestAnimationFrame(draw);
@@ -285,10 +275,18 @@
       ctx.fillRect(0, 0, w, h);
       const zoom = 110, strX = 140, strY = 140;
       for (let y = h / 2 - 40; y < h / 2 + 40; y += 0.5) {
-        const hue = y * 0.6 + ticker * 50;
-        const color = isDark ? `hsla(${hue},100%,50%,0.01)` : `hsla(0,0%,${50 + (y % 50) / 2}%,0.01)`;
+        let strokeColor;
+        if (isDark) {
+          if (useInvertedGray) {
+            strokeColor = `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.06)`;
+          } else {
+            strokeColor = `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.05)`;
+          }
+        } else {
+          strokeColor = `hsla(0,0%,${50 + (y % 50) / 2}%,0.01)`;
+        }
         ctx.beginPath();
-        ctx.strokeStyle = color;
+        ctx.strokeStyle = strokeColor;
         for (let x = -strX; x < w + strX; x += 4) {
           const n1 = simplex.noise3D(x / zoom, y / zoom, ticker) * strX;
           const n2 = simplex.noise3D(x / zoom + 1000, y / zoom + 1000, ticker + 1000) * strY;
@@ -299,26 +297,61 @@
     }
     draw(1);
 
-    // Player
+    const artworkImg = document.getElementById('artworkImg');
+    function analyzeImagePixels(imgEl, sampleSize = 100) {
+      try {
+        const iw = imgEl.naturalWidth, ih = imgEl.naturalHeight;
+        if (!iw || !ih) return { r: 255, g: 255, b: 255, blackPct: 0 };
+        const sw = sampleSize, sh = Math.round((ih / iw) * sampleSize) || sampleSize;
+        const tmp = document.createElement('canvas');
+        tmp.width = sw; tmp.height = sh;
+        const tctx = tmp.getContext('2d');
+        tctx.drawImage(imgEl, 0, 0, sw, sh);
+        const imgData = tctx.getImageData(0, 0, sw, sh).data;
+        let r = 0, g = 0, b = 0, count = 0, blackCount = 0;
+        for (let i = 0; i < imgData.length; i += 4) {
+          const rr = imgData[i], gg = imgData[i + 1], bb = imgData[i + 2], aa = imgData[i + 3];
+          if (aa === 0) continue;
+          const lum = 0.299 * rr + 0.587 * gg + 0.114 * bb;
+          if (lum < 30) blackCount++;
+          r += rr; g += gg; b += bb; count++;
+        }
+        if (count === 0) return { r: 255, g: 255, b: 255, blackPct: 0 };
+        const avg = { r: Math.round(r / count), g: Math.round(g / count), b: Math.round(b / count) };
+        const blackPct = Math.round((blackCount / (sw * sh)) * 100);
+        return { r: avg.r, g: avg.g, b: avg.b, blackPct };
+      } catch (err) {
+        console.warn('analyzeImagePixels failed:', err);
+        return { r: 200, g: 200, b: 200, blackPct: 0 };
+      }
+    }
+    function updateGradientFromArtwork() {
+      const result = analyzeImagePixels(artworkImg, 80);
+      if (result.blackPct >= 90) {
+        const invR = 255 - result.r, invG = 255 - result.g, invB = 255 - result.b;
+        const gray = Math.round(0.299 * invR + 0.587 * invG + 0.114 * invB);
+        avgColor = { r: gray, g: gray, b: gray }; useInvertedGray = true;
+      } else {
+        avgColor = { r: result.r, g: result.g, b: result.b }; useInvertedGray = false;
+      }
+    }
+
     const playPauseBtn = document.getElementById('playPauseBtn');
     const playPauseIcon = document.getElementById('playPauseIcon');
     const artworkEl = document.getElementById('artwork');
-    const artworkImg = document.getElementById('artworkImg');
     const artistNameEl = document.querySelector('.artistname');
     const songNameEl = document.querySelector('.songname');
     const audio = document.getElementById('audioPlayer');
-    let isPlaying = false;
-    let trackInfoInterval;
+    let isPlaying = false; let trackInfoInterval;
 
     function setMediaSession(artist, title, cover) {
       if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: title,
-          artist: artist,
-          artwork: [
-            { src: cover, sizes: '512x512', type: 'image/jpeg' }
-          ]
-        });
+        try {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: title, artist: artist,
+            artwork: [{ src: cover, sizes: '512x512', type: 'image/jpeg' }]
+          });
+        } catch (e) { console.warn('MediaSession set failed', e); }
       }
     }
 
@@ -330,40 +363,36 @@
         const artist = data.artist || "Unknown";
         const title = data.title || "Unknown";
         const cover = data.cover || "./images/Artwork.jpg";
-
         artistNameEl.textContent = artist;
         songNameEl.textContent = title;
-
         artworkImg.style.visibility = "hidden";
+        try { artworkImg.crossOrigin = "anonymous"; } catch (e) { }
         artworkImg.src = cover;
-        artworkImg.onload = () => { artworkImg.style.visibility = "visible"; }
-
+        artworkImg.onload = () => {
+          artworkImg.style.visibility = "visible";
+          updateGradientFromArtwork();
+          if (isPlaying) artworkEl.classList.add('playing');
+        };
         setMediaSession(artist, title, cover);
-
-        if (initial) artworkImg.style.opacity = 0.5; // İlk yükleme pause durumu
-      } catch (e) { console.error(e); }
+        if (initial) artworkImg.style.opacity = 0.5;
+      } catch (e) { console.error('updateTrackInfo error', e); }
     }
-
     updateTrackInfo(true);
 
     playPauseBtn.addEventListener('click', () => {
       isPlaying = !isPlaying;
-      playPauseBtn.setAttribute('aria-pressed', isPlaying);
-      playPauseBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
-      playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
-
       if (isPlaying) {
         audio.play();
         artworkEl.classList.add('playing');
-        artworkImg.style.opacity = 0.8; // Play sonrası opacity
-        playPauseIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="white"></path>';
+        artworkImg.style.opacity = 0.8;
+        playPauseIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="white"/>';
         updateTrackInfo();
         trackInfoInterval = setInterval(updateTrackInfo, 5000);
       } else {
         audio.pause();
         artworkEl.classList.remove('playing');
-        artworkImg.style.opacity = 0.5; // Pause sonrası opacity
-        playPauseIcon.innerHTML = '<path d="M4 2.5v19l16-9.5L4 2.5z" fill="white"></path>';
+        artworkImg.style.opacity = 0.5;
+        playPauseIcon.innerHTML = '<path d="M4 2.5v19l16-9.5L4 2.5z" fill="white"/>';
         clearInterval(trackInfoInterval);
       }
     });
