@@ -60,22 +60,33 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      border-radius: 20px;
+      overflow: hidden;
+      aspect-ratio: 1/1;
+      /* alan hep aynı kalsın */
+      background: rgba(0, 0, 0, 0.06);
+      /* artwork yoksa boş alan */
     }
 
+    /* img başlangıçta gizli; sadece has-cover ile gösterilecek */
     .artwork img {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: cover;
       border-radius: 20px;
       opacity: 0.5;
       transition: transform .45s cubic-bezier(.2, .9, .3, 1), opacity .35s, filter .35s;
       will-change: transform, opacity;
-      visibility: hidden;
+      display: none;
+    }
+
+    .artwork.has-cover img {
+      display: block;
     }
 
     .artwork.playing img {
       transform: scale(1.02);
       opacity: 0.8;
-      visibility: visible;
     }
 
     .play-pause-btn {
@@ -93,6 +104,7 @@
       cursor: pointer;
       transition: background .3s ease, transform .18s ease;
       box-shadow: 0 8px 22px rgba(0, 0, 0, .35);
+      z-index: 3;
     }
 
     .play-pause-btn:active {
@@ -220,18 +232,22 @@
     <div class="ustlogo">
       <img src="./images/Else Logo_Sadece ELSE_Black_PNG_Slogansiz.png" alt="logo" id="logo">
     </div>
+
     <div class="artwork" id="artwork">
-      <img id="artworkImg" src="./images/Artwork.jpg" alt="Artwork" crossorigin="anonymous">
-      <div class="play-pause-btn" id="playPauseBtn">
+      <!-- dikkat: burada src yok -->
+      <img id="artworkImg" alt="Artwork" crossorigin="anonymous">
+      <div class="play-pause-btn" id="playPauseBtn" aria-label="Play" aria-pressed="false" title="Play">
         <svg id="playPauseIcon" viewBox="0 0 24 24">
           <path d="M4 2.5v19l16-9.5L4 2.5z" fill="white" />
         </svg>
       </div>
     </div>
+
     <div class="texts">
       <div class="artistname">Loading...</div>
       <div class="songname">Loading...</div>
     </div>
+
     <div class="switch-wrapper">
       <div class="switch">
         <input type="checkbox" id="switch">
@@ -239,9 +255,8 @@
       </div>
     </div>
   </div>
-  <div class="banner">
-    <img src="./images/Else Logo_Sadece ELSE_White_PNG.png" height="20" alt="logo-white">
-  </div>
+
+  <div class="banner"><img src="./images/Else Logo_Sadece ELSE_White_PNG.png" height="20" alt="logo-white"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/simplex-noise@2.4.0/simplex-noise.min.js"></script>
   <script>
@@ -291,6 +306,8 @@
     draw(1);
 
     const artworkImg = document.getElementById('artworkImg');
+    const artworkEl = document.getElementById('artwork');
+
     function analyzeImagePixels(imgEl, sampleSize = 80) {
       try {
         const iw = imgEl.naturalWidth, ih = imgEl.naturalHeight;
@@ -309,17 +326,18 @@
         return { r: Math.round(r / count), g: Math.round(g / count), b: Math.round(b / count) };
       } catch (e) { return { r: 200, g: 200, b: 200 }; }
     }
+
     function updateGradientFromArtwork() {
       avgColor = analyzeImagePixels(artworkImg, 80);
     }
 
     const playPauseBtn = document.getElementById('playPauseBtn');
     const playPauseIcon = document.getElementById('playPauseIcon');
-    const artworkEl = document.getElementById('artwork');
     const artistNameEl = document.querySelector('.artistname');
     const songNameEl = document.querySelector('.songname');
     const audio = document.getElementById('audioPlayer');
     let isPlaying = false, trackInfoInterval;
+    let lastCover = null;
 
     async function updateTrackInfo(initial = false) {
       try {
@@ -328,37 +346,82 @@
         const data = await res.json();
         const artist = data.artist || "Unknown";
         const title = data.title || "Unknown";
-        const cover = data.cover || "./images/Artwork.jpg";
+
+        // cover olabilir: boş string, null veya 'null' olabilir -> normalize et
+        let cover = '';
+        if (data.cover && typeof data.cover === 'string') {
+          cover = data.cover.trim();
+          if (cover === 'null') cover = '';
+        }
+
         artistNameEl.textContent = artist;
         songNameEl.textContent = title;
-        if (artworkImg.src !== cover) {
-          artworkImg.style.visibility = "hidden";
-          artworkImg.src = cover;
-          artworkImg.onload = () => {
-            artworkImg.style.visibility = "visible";
-            updateGradientFromArtwork();
-            if (isPlaying) artworkEl.classList.add('playing');
-          };
+
+        // eğer cover varsa ve farklıysa yükle; yoksa alanı boş bırak
+        if (cover) {
+          if (cover !== lastCover) {
+            // ön yükle ile flicker'ı azalt
+            const pre = new Image();
+            try { pre.crossOrigin = 'anonymous'; } catch (e) { /* ignore */ }
+            pre.onload = () => {
+              artworkImg.src = cover;
+              artworkEl.classList.add('has-cover');
+              artworkImg.style.display = 'block';
+              updateGradientFromArtwork();
+              if (isPlaying) artworkEl.classList.add('playing');
+            };
+            pre.onerror = () => {
+              // yüklenemezse görsel göstermiyoruz ama kutu boş kalacak
+              artworkEl.classList.remove('has-cover');
+              artworkImg.src = '';
+              artworkImg.style.display = 'none';
+              avgColor = { r: 255, g: 255, b: 255 };
+            };
+            pre.src = cover;
+            lastCover = cover;
+          }
+        } else {
+          // cover yok: boş alan kalsın, img gösterilmesin
+          artworkEl.classList.remove('has-cover');
+          artworkImg.src = '';
+          artworkImg.style.display = 'none';
+          avgColor = { r: 255, g: 255, b: 255 };
+          lastCover = null;
         }
-      } catch (e) { console.error("trackInfo error", e); }
+
+      } catch (e) {
+        console.error("trackInfo error", e);
+      }
     }
+
+    // ilk yüklemede current track'ü hemen al
     updateTrackInfo(true);
 
     playPauseBtn.addEventListener('click', () => {
       isPlaying = !isPlaying;
       if (isPlaying) {
-        audio.play();
+        audio.play().catch(() => { });
         artworkEl.classList.add('playing');
-        artworkImg.style.opacity = 0.8;
+        if (artworkEl.classList.contains('has-cover')) artworkImg.style.opacity = 0.8;
         playPauseIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="white"/>';
         updateTrackInfo();
         trackInfoInterval = setInterval(updateTrackInfo, 5000);
       } else {
         audio.pause();
         artworkEl.classList.remove('playing');
-        artworkImg.style.opacity = 0.5;
+        if (artworkEl.classList.contains('has-cover')) artworkImg.style.opacity = 0.5;
         playPauseIcon.innerHTML = '<path d="M4 2.5v19l16-9.5L4 2.5z" fill="white"/>';
         clearInterval(trackInfoInterval);
+      }
+    });
+
+    // visible değişince interval yönetimi
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearInterval(trackInfoInterval);
+      } else if (isPlaying) {
+        updateTrackInfo();
+        trackInfoInterval = setInterval(updateTrackInfo, 5000);
       }
     });
   </script>
