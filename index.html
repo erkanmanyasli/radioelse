@@ -56,28 +56,34 @@
       position: relative;
       width: 60%;
       max-width: 400px;
+      aspect-ratio: 1/1;
+      /* kutu daima kare */
       margin-bottom: 10px;
       display: flex;
       justify-content: center;
       align-items: center;
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.05);
+      /* artwork yoksa boş gri arka plan */
     }
 
     .artwork img {
       width: 100%;
-      height: auto;
+      height: 100%;
       border-radius: 20px;
       opacity: 0.5;
-      transition: transform .45s cubic-bezier(.2, .9, .3, 1), opacity .35s, filter .35s, visibility .35s;
+      transition: transform .45s cubic-bezier(.2, .9, .3, 1), opacity .35s, filter .35s;
       will-change: transform, opacity;
-      /* başlangıçta gizli — script açınca gösterir */
-      visibility: hidden;
-      opacity: 0;
-      display: block;
+      display: none;
+      /* başta görünmesin */
+      object-fit: cover;
     }
 
     .artwork.playing img {
       transform: scale(1.02);
       opacity: 0.8;
+      display: block;
     }
 
     .play-pause-btn {
@@ -95,6 +101,7 @@
       cursor: pointer;
       transition: background .3s ease, transform .18s ease;
       box-shadow: 0 8px 22px rgba(0, 0, 0, .35);
+      z-index: 2;
     }
 
     .play-pause-btn:active {
@@ -224,8 +231,7 @@
     </div>
 
     <div class="artwork" id="artwork">
-      <!-- başlangıçta src boş: sayfa yüklendiğinde API'den gelirse gösterilecek -->
-      <img id="artworkImg" src="" alt="Artwork" crossorigin="anonymous">
+      <img id="artworkImg" alt="Artwork" crossorigin="anonymous">
       <div class="play-pause-btn" id="playPauseBtn" aria-label="Play" aria-pressed="false" title="Play">
         <svg id="playPauseIcon" viewBox="0 0 24 24">
           <path d="M4 2.5v19l16-9.5L4 2.5z" fill="white" />
@@ -267,13 +273,8 @@
     let avgColor = { r: 255, g: 255, b: 255 };
     let useInvertedGray = false;
 
-    function resizeCanvas() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-      ctx.lineWidth = 2;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    function resizeCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; ctx.lineWidth = 2; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
     function draw(now) {
       requestAnimationFrame(draw);
@@ -284,7 +285,11 @@
       for (let y = h / 2 - 40; y < h / 2 + 40; y += 0.5) {
         let strokeColor;
         if (isDark) {
-          strokeColor = useInvertedGray ? `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.06)` : `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.05)`;
+          if (useInvertedGray) {
+            strokeColor = `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.06)`;
+          } else {
+            strokeColor = `rgba(${avgColor.r},${avgColor.g},${avgColor.b},0.05)`;
+          }
         } else {
           strokeColor = `hsla(0,0%,${50 + (y % 50) / 2}%,0.01)`;
         }
@@ -301,177 +306,60 @@
     draw(1);
 
     const artworkImg = document.getElementById('artworkImg');
-    artworkImg.crossOrigin = "anonymous";
-
-    function analyzeImagePixels(imgEl, sampleSize = 100) {
-      try {
-        const iw = imgEl.naturalWidth, ih = imgEl.naturalHeight;
-        if (!iw || !ih) return { r: 255, g: 255, b: 255, blackPct: 0 };
-        const sw = sampleSize, sh = Math.round((ih / iw) * sampleSize) || sampleSize;
-        const tmp = document.createElement('canvas');
-        tmp.width = sw;
-        tmp.height = sh;
-        const tctx = tmp.getContext('2d');
-        tctx.drawImage(imgEl, 0, 0, sw, sh);
-        const imgData = tctx.getImageData(0, 0, sw, sh).data;
-        let r = 0, g = 0, b = 0, count = 0, blackCount = 0;
-        for (let i = 0; i < imgData.length; i += 4) {
-          const rr = imgData[i], gg = imgData[i + 1], bb = imgData[i + 2], aa = imgData[i + 3];
-          if (aa === 0) continue;
-          const lum = 0.299 * rr + 0.587 * gg + 0.114 * bb;
-          if (lum < 30) blackCount++;
-          r += rr;
-          g += gg;
-          b += bb;
-          count++;
-        }
-        if (count === 0) return { r: 255, g: 255, b: 255, blackPct: 0 };
-        const avg = { r: Math.round(r / count), g: Math.round(g / count), b: Math.round(b / count) };
-        const blackPct = Math.round((blackCount / (sw * sh)) * 100);
-        return { r: avg.r, g: avg.g, b: avg.b, blackPct };
-      } catch (err) {
-        console.warn('analyzeImagePixels failed:', err);
-        return { r: 200, g: 200, b: 200, blackPct: 0 };
-      }
-    }
-
+    const artworkEl = document.getElementById('artwork');
     function updateGradientFromArtwork() {
-      const result = analyzeImagePixels(artworkImg, 80);
-      if (result.blackPct >= 90) {
-        const invR = 255 - result.r, invG = 255 - result.g, invB = 255 - result.b;
-        const gray = Math.round(0.299 * invR + 0.587 * invG + 0.114 * invB);
-        avgColor = { r: gray, g: gray, b: gray };
-        useInvertedGray = true;
-      } else {
-        avgColor = { r: result.r, g: result.g, b: result.b };
-        useInvertedGray = false;
-      }
+      // basit bırakıyoruz, artwork yoksa gradient hesaplanmayacak
     }
 
     const playPauseBtn = document.getElementById('playPauseBtn');
     const playPauseIcon = document.getElementById('playPauseIcon');
-    const artworkEl = document.getElementById('artwork');
     const artistNameEl = document.querySelector('.artistname');
     const songNameEl = document.querySelector('.songname');
     const audio = document.getElementById('audioPlayer');
-    let isPlaying = false;
-    let trackInfoInterval;
-    let lastTrack = { artist: '', title: '', cover: '' };
+    let isPlaying = false; let trackInfoInterval;
 
-    function setMediaSession(artist, title, cover) {
-      if ('mediaSession' in navigator) {
-        try {
-          if (cover) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-              title: title,
-              artist: artist,
-              artwork: [{ src: cover, sizes: '512x512', type: 'image/jpeg' }]
-            });
-          } else {
-            navigator.mediaSession.metadata = new MediaMetadata({
-              title: title,
-              artist: artist
-            });
-          }
-        } catch (e) { console.warn('MediaSession set failed', e); }
-      }
-    }
-
-    // GÜNCEL ŞARKI BİLGİSİNİ ÇEK ve başlangıçta artwork'ü göster (varsa).
     async function updateTrackInfo(initial = false) {
       try {
         const res = await fetch(`https://api.radioking.io/widget/radio/radio-else1/track/current?format=json&_=${Date.now()}`);
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
-
         const artist = data.artist || "Unknown";
         const title = data.title || "Unknown";
+        const cover = data.cover || null;
 
-        // Radioking API'de cover alanı boş string, "null" string veya gerçek URL olabilir.
-        let cover = data.cover && typeof data.cover === 'string' ? data.cover.trim() : '';
-        if (!cover || cover === 'null') cover = null;
-
-        // güncel metinleri koy
         artistNameEl.textContent = artist;
         songNameEl.textContent = title;
 
-        // Eğer cover varsa: ön yükle, sonra DOM <img>'e ata (flash azaltmak için)
-        if (cover && cover !== lastTrack.cover) {
-          const pre = new Image();
-          // crossOrigin isteğe bağlı; CORS yoksa onerror tetiklenebilir
-          try { pre.crossOrigin = 'anonymous'; } catch (e) { /* ignore */ }
-          pre.onload = () => {
-            // başarılı yükleme -> gerçek <img>'e ata ve görünür yap
-            artworkImg.src = cover;
-            artworkImg.style.visibility = 'visible';
-            // görünürlük değeri çalınıp çalınmamasına göre ayarlansın
-            artworkImg.style.opacity = isPlaying ? '0.8' : '0.5';
-            if (isPlaying) artworkEl.classList.add('playing');
+        if (cover) {
+          artworkImg.src = cover;
+          artworkImg.style.display = "block";
+          artworkImg.onload = () => {
             updateGradientFromArtwork();
+            if (isPlaying) artworkEl.classList.add('playing');
           };
-          pre.onerror = () => {
-            // yüklenemezse artwork gösterme (sadece play butonu görünür kalır)
-            artworkImg.src = '';
-            artworkImg.style.visibility = 'hidden';
-            artworkImg.style.opacity = 0;
-            artworkEl.classList.remove('playing');
-          };
-          // başlat
-          pre.src = cover;
-        } else if (!cover) {
-          // artwork yoksa: gizle, sadece play ikonu kalsın
-          artworkImg.src = '';
-          artworkImg.style.visibility = 'hidden';
-          artworkImg.style.opacity = 0;
-          artworkEl.classList.remove('playing');
+        } else {
+          artworkImg.style.display = "none"; // cover yoksa gizle
         }
-        // kayıt
-        lastTrack = { artist, title, cover: cover || '' };
-        setMediaSession(artist, title, cover);
-        if (initial && artworkImg.src) {
-          // sayfa ilk yüklendiğinde opaklık küçük olsun (yüklenince onload ayarlar)
-          artworkImg.style.opacity = isPlaying ? '0.8' : '0.5';
-        }
-      } catch (e) {
-        console.error('updateTrackInfo error', e);
-        // Hata durumunda mevcut placeholder'ı göstermiyoruz — sadece play butonu kalsın
-        artworkImg.src = '';
-        artworkImg.style.visibility = 'hidden';
-        artworkImg.style.opacity = 0;
-      }
-    }
 
-    // sayfa açıldığında hemen current track bilgisi alınsın
+      } catch (e) { console.error('updateTrackInfo error', e); }
+    }
     updateTrackInfo(true);
 
     playPauseBtn.addEventListener('click', () => {
       isPlaying = !isPlaying;
       if (isPlaying) {
-        audio.play().catch((e) => { console.warn('audio play prevented', e); });
+        audio.play();
         artworkEl.classList.add('playing');
-        // eğer artwork görünürse daha yüksek opaklık ver
-        if (artworkImg.src) artworkImg.style.opacity = 0.8;
+        artworkImg.style.opacity = 0.8;
         playPauseIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="white"/>';
-        // oynatırken track güncellemeleri istersen interval başlat (isteğe bağlı)
         updateTrackInfo();
         trackInfoInterval = setInterval(updateTrackInfo, 5000);
       } else {
         audio.pause();
         artworkEl.classList.remove('playing');
-        if (artworkImg.src) artworkImg.style.opacity = 0.5;
+        artworkImg.style.opacity = 0.5;
         playPauseIcon.innerHTML = '<path d="M4 2.5v19l16-9.5L4 2.5z" fill="white"/>';
         clearInterval(trackInfoInterval);
-      }
-    });
-
-    // (opsiyonel) sayfa görünürlüğü değişirse interval'i durdur/updateler vs.
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        clearInterval(trackInfoInterval);
-      } else if (isPlaying) {
-        // görünür olunca hızlıca güncelle
-        updateTrackInfo();
-        trackInfoInterval = setInterval(updateTrackInfo, 5000);
       }
     });
   </script>
